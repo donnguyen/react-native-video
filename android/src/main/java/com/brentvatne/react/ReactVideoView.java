@@ -9,13 +9,14 @@ import java.util.Map;
 import java.util.HashMap;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.yqritc.scalablevideoview.ScalableType;
 import com.yqritc.scalablevideoview.ScalableVideoView;
 
 public class ReactVideoView extends ScalableVideoView implements MediaPlayer.OnPreparedListener, MediaPlayer
-        .OnErrorListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener {
+        .OnErrorListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener, LifecycleEventListener {
 
     public enum Events {
         EVENT_LOAD_START("onVideoLoadStart"),
@@ -97,6 +98,8 @@ public class ReactVideoView extends ScalableVideoView implements MediaPlayer.OnP
             }
         };
         mProgressUpdateHandler.post(mProgressUpdateRunnable);
+
+        themedReactContext.addLifecycleEventListener(this);
     }
 
     private void initializeMediaPlayerIfNeeded() {
@@ -310,5 +313,24 @@ public class ReactVideoView extends ScalableVideoView implements MediaPlayer.OnP
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         setSrc(mSrcUriString, mSrcType, mSrcIsNetwork, mSrcIsAsset);
+    }
+
+    @Override
+    public void onHostResume() {
+    }
+
+    @Override
+    public void onHostPause() {
+        if (!mMediaPlayerValid) {
+            return;
+        }
+
+        if (mMediaPlayer.isPlaying()) {
+            pause();
+        };
+    }
+
+    @Override
+    public void onHostDestroy() {
     }
 }
